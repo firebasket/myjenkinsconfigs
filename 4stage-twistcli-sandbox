@@ -1,0 +1,45 @@
+pipeline {
+  agent any
+  stages {
+    stage("build") {
+      steps {
+        sh """
+            rm -rf Dockerfile
+            rm -rf entrypoint.sh
+            wget https://spektralabssta.blob.core.windows.net/dtadocker/Dockerfile
+            wget https://spektralabssta.blob.core.windows.net/dtadocker/entrypoint.sh
+            sudo docker build -t myapp .
+        """
+      }
+    }
+    stage("check"){
+      environment{
+            PRISMATOKEN="eyJhbGciOiJ12l6Y7sKw8pwQ"
+            PRISMAURL="https://app0.cloud.twistlock.com/app0-93080870"
+      }
+      steps{
+        sh """
+            sudo twistcli images scan --token ${PRISMATOKEN} --address ${PRISMAURL} myapp
+        """
+      }
+    }
+    stage("sandbox"){
+      environment{
+            PRISMATOKEN="eyJhbGciOiJIUzsKw8pwQ"
+            PRISMAURL="https://app0.cloud.twistlock.com/app0-93080870"
+      }
+      steps{
+        sh """
+            sudo twistcli sandbox --token ${PRISMATOKEN} --address ${PRISMAURL} myapp
+        """
+      }
+    }
+    stage("run") {
+      steps {
+        sh """
+            sudo docker run --rm myapp
+        """
+      }
+    }
+  }
+}
