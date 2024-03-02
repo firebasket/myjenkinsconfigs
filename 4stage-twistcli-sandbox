@@ -4,22 +4,22 @@ pipeline {
     stage("build") {
       steps {
         sh """
-            rm -rf Dockerfile
-            rm -rf entrypoint.sh
-            wget https://spektralabssta.blob.core.windows.net/dtadocker/Dockerfile
-            wget https://spektralabssta.blob.core.windows.net/dtadocker/entrypoint.sh
+            rm -rf myjenkinsconfigs
+            git clone https://github.com/firebasket/myjenkinsconfigs
+            cd myjenkinsconfigs
             sudo docker build -t myapp .
         """
       }
     }
     stage("check"){
       environment{
-            PRISMATOKEN="eyJhbGciOiJ12l6Y7sKw8pwQ"
-            PRISMAURL="https://app0.cloud.twistlock.com/app0-93080870"
+            PRISMAUSER="testTestTest"
+            PRISMAPASS="testTestTest"
+            PRISMAURL="https://asia-northeast1.cloud.twistlock.com/japan-1167259786"
       }
       steps{
         sh """
-            sudo twistcli images scan --token ${PRISMATOKEN} --address ${PRISMAURL} myapp
+            sudo twistcli images scan -u ${PRISMAUSER} -p ${PRISMAPASS} --address ${PRISMAURL} myapp
         """
       }
     }
@@ -30,7 +30,7 @@ pipeline {
       }
       steps{
         sh """
-            sudo twistcli sandbox --token ${PRISMATOKEN} --address ${PRISMAURL} myapp
+            sudo twistcli sandbox -u ${PRISMAUSER} -p ${PRISMAPASS} --address ${PRISMAURL} myapp
         """
       }
     }
