@@ -1,0 +1,35 @@
+pipeline {
+  agent any
+  stages {
+    stage("build") {
+      steps {
+        sh """
+            rm -rf log4jpoc
+            git clone https://github.com/firebasket/log4jpoc
+            cd log4jpoc
+            sudo docker build -t log4jcve:$BUILD_NUMBER .
+        """
+      }
+    }
+    stage("check"){
+      environment{
+            PRISMAUSER="testTestTest"
+            PRISMAPASS="testTestTest"
+            PRISMAURL="https://asia1cloud.twistlock.com/japan-11111111"
+      }
+      steps{
+        sh """
+            sudo twistcli images scan -u ${PRISMAUSER} -p ${RISMAPASS} --address ${RISMAURL} log4jcve:$BUILD_NUMBER
+        """
+      }
+    }
+    stage("run") {
+      steps {
+        sh """
+            sudo docker run --rm log4jcve
+        """
+      }
+    }
+  }
+}
+
